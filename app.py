@@ -31,7 +31,7 @@ game_states = dict()
 # Handles '/start' slash command by starting a new game for that unique team, channel, user. 
 @app.route('/start', methods=['POST'])
 def start():
-    print("start called \n")
+    print("start called... \n")
     if not (sigVerifier.is_valid_request(request.get_data(), request.headers)):
         abort(500)
 
@@ -40,7 +40,7 @@ def start():
     side = request.form['text'].lower()
     key = (data['team_id'], data['channel_id'], data['user_id'])
     if key in game_states:
-        print("starting new game...")
+        print("overwriting old game... \n")
     
     text = create_new_game(key, side)
     if not text:
@@ -54,21 +54,24 @@ def start():
 # Given a KEY for GAME_STATES, and SIDE (either "offense" or "defense"), creates a new game. Overwrites if existing game exists
 def create_new_game(key: tuple, side: str):
     random_num = "".join([str(random.randint(0, 9)) for i in range(3)]) # generates 3 digit number as a str
+    
     text = None
 
     if side == "offense":
         game_states[key] = {"side": side, "numbers": random_num}
         text = "ok. "
+        print("new offense game started with secret number: " + random_num)
     elif side == "defense":
         game_states[key] = {"side": side, "numbers": (random_num)}
         text = "ok. " + random_num
+        print("new defense game started")
 
     return text
 
 # Handler for any message that is sent to any channel the bot is a member of.
 @slack_events_adapter.on("message")
 def message(payload):
-    print("message called \n")
+    print("message handler called... \n")
     event = payload.get("event", {})
     channel_id = event.get("channel")
     key = (payload.get("team_id"), channel_id, event.get("user"))
@@ -88,7 +91,7 @@ def message(payload):
         slack_web_client.chat_postMessage(
             channel=channel_id,
             text=text)
-        print("sent message")
+        print("sent message \n")
     except SlackApiError as e:
         print(f"Got an error: {e.response['error']}")
 
@@ -131,20 +134,21 @@ def offense(key: tuple, guess: str):
 # TODO: Implement better parsing (possibly regex)
 def defense(key: tuple, guess: str):
     guess = guess.lower()
-    if "strike" not in guess and "ball" not in guess and "out" not in "guess":
+    if "strike" not in guess and "ball" not in guess and "out" not in guess:
         return
 
     words = guess.split()
     strikes = None
-    balls = None
+    balls = None # Currently we don't use this. Needed for smarter bot guessing.
     for i, word in enumerate(words):
         if i == 0:
             continue
-        if word == "strike" or word == "strikes":
+        if word == "strike" or word == "strikes" or word == "strikes!":
             strikes = words[i - 1]
-        elif word == "ball" or word == "balls":
+        elif word == "ball" or word == "balls" or word == "balls!":
             balls = words[i - 1]
-    if strikes == 3 or strikes == "three":
+
+    if strikes == "3" or strikes == "three":
         del game_states[key] # remove game when computer wins
         return "I win!"
     
