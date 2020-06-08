@@ -2,8 +2,7 @@
 
 A slack bot that you can play the baseball game described [here](https://www.hackster.io/hyun-woo-park/baseball-game-daecdd). The bot uses Flask, the Slack's Events API, and Slack's Python WebClient. 
 
-![Baseball Bot Example]
-(https://raw.githubusercontent.com/atimzhao/Baseball-Bot/master/offense.png =500x)
+![](https://raw.githubusercontent.com/atimzhao/Baseball-Bot/master/offense.png)
 
 ## Getting Started
 By running `python3 app.py` you will be starting a server locally on `localhost:3000` which will receive requests from Slack using the Events API (the exception being the slash command) via ngrok. To set this all up, you will also need to create a new app for your workspace at [api.slack.com].
